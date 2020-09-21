@@ -52,7 +52,7 @@ def handle_message(event):
         alcKey,liquorAmount = recievedMessageText.split(':')
         if (alcKey in alcTable.keys()) and (liquorAmount.isdigit):
             alcAmount = round(alcTable[alcKey]*int(liquorAmount)*0.8,1)
-            resolutionTime = alcAmount / (userWeight*0.1)
+            resolutionTime = round(alcAmount / (userWeight*0.1),1)
             line_bot_api.reply_message(
                 event.reply_token,
                 TextSendMessage(text="接種アルコール量は"+str(alcAmount)+'gです.分解には約'+str(resolutionTime)+'時間かかります'))
@@ -64,7 +64,7 @@ def handle_message(event):
     
         
 
-@handler.add(FollowEvent) #なぜかクイックリプライができてない
+@handler.add(FollowEvent)
 def handle_follow(event):
     line_bot_api.reply_message(
         event.reply_token,
