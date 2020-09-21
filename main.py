@@ -9,7 +9,6 @@ from linebot.exceptions import (
 )
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage,FollowEvent,
-    QuickReply, QuickReplyButton,MessageAction
 )
 
 app = Flask(__name__)
@@ -49,33 +48,27 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     recievedMessageText = event.message.text
-    
     if ':' in recievedMessageText:
         alcKey,liquorAmount = recievedMessageText.split(':')
         if (alcKey in alcTable.keys()) and (liquorAmount.isdigit):
             alcAmount = round(alcTable[alcKey]*int(liquorAmount)*0.8,1)
-            #resolutionTime = alcAmount / (userWeight*0.1)
+            resolutionTime = alcAmount / (userWeight*0.1)
             line_bot_api.reply_message(
                 event.reply_token,
-                TextSendMessage(text=str(alcAmount)))
+                TextSendMessage(text="接種アルコール量は"+str(alcAmount)+'gです.分解には約'+str(resolutionTime)+'時間かかります'))
         else:
             line_bot_api.reply_message(
                 event.reply_token,
-                TextSendMessage(text="入力形式が間違ってますよ")
+                TextSendMessage(text="対応していないお酒かお酒の量の書き方が間違っています")
             )
+    
+        
 
-@handler.add(FollowEvent)
+@handler.add(FollowEvent) #なぜかクイックリプライができてない
 def handle_follow(event):
     line_bot_api.reply_message(
-       event.reply_token,
-       TextSendMessage(text='友達追加ありがとう!接種アルコール量を計算するにはお酒:飲んだ量を入力してね. ビール、ウイスキー、赤ワイン、白ワイン、酎ハイ、ハイボールなら計算できます。'))
-    weightList = ["40kgくらい","50kgくらい","60kgくらい","70kgくらい","80kgくらい"]
-    items = [QuickReplyButton(action=MessageAction(label=f"{weight}",text=f"{weight}です")) for weight in weightList]
-    messages = TextSendMessage(text="体重はどれくらいですか？",
-                               quick_reply=QuickReply(items=items))
-    line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=messages)
+        TextSendMessage(text="アルコールの摂取量と分解にかかる時間を計算するBotです。お酒の種類:飲んだ量(ml)を教えて")
     )
 
 if __name__ == "__main__":
