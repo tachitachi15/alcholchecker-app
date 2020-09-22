@@ -52,7 +52,7 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     recievedMessageText = event.message.text
-    userId = event.source.userId
+    userId = event.source.user_id
     #ユーザーの重さ情報登録
     if 'kg' in recievedMessageText: #ここはクイックリプライの応答を受け取るようにしたい
         userWeight = int(recievedMessageText.split('kg')[0])
@@ -112,7 +112,7 @@ def handle_follow(event):
 @handler.add(UnfollowEvent)
 def handle_unfollow(event):
     #データベースからユーザーIDと体重データ削除
-    userId = event.source.userId
+    userId = event.source.user_id
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.exe("DELETE FROM weighttable WHERE userId = '{}'".format(userId))
