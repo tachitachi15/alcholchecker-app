@@ -69,7 +69,7 @@ def callback():
 def handle_message(event):
     recievedMessageText = event.message.text
     userId = event.source.user_id
-    #ユーザーの重さ情報登録
+    
     if 'kg' in recievedMessageText: #ここはクイックリプライの応答を受け取るようにしたい
         userWeight = int(recievedMessageText.split('kg')[0])
         mes = set_userData(userId,userWeight)
@@ -104,8 +104,6 @@ def handle_message(event):
                 TextSendMessage(text="対応していないお酒かお酒の量の書き方が間違っています")
             )
     
-        
-
 @handler.add(FollowEvent)
 def handle_follow(event):
     line_bot_api.reply_message(
