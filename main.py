@@ -27,6 +27,22 @@ alcTable = {'ビール': 0.05,'ハイボール':0.05,'酎ハイ':0.07,'白ワイ
 def get_connection():
     return psycopg2.connect(DATABASE_URL)
 
+def set_userData(userId,userWeight):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            try:
+                cur.execute("SELECT userWeight FROM weighttable WHERE userId='{}'".format(userId))
+                rows = cur.fetchall()
+                if len(rows)==0:
+                    cur.execute("INSERT INTO weighttable (userId,userWeight) VALUES ('{0}',{1})".format(userId,userWeight))
+                    mes = "体重を記録"
+                else:
+                    cur.execute("UPDATE weighttable SET userWeight = {0} WHERE userId='{1}'".format(userWeight,userId))
+                    mes = "体重を更新"
+            except:
+                mes = "体重の記録に失敗"
+    return mes
+
 @app.route("/")
 def hello_world():
     return "hello_world"
@@ -56,19 +72,11 @@ def handle_message(event):
     #ユーザーの重さ情報登録
     if 'kg' in recievedMessageText: #ここはクイックリプライの応答を受け取るようにしたい
         userWeight = int(recievedMessageText.split('kg')[0])
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                try:
-                    cur.execute("INSERT INTO weighttable (userId,userWeight) VALUES ({0},{1})".format(userId,userWeight))
-                    line_bot_api.reply_message(
-                        event.reply_token,
-                        TextSendMessage(text="体重を記録しました")
-                    )
-                except:
-                    line_bot_api.reply_message(
-                        event.reply_token,
-                        TextSendMessage(text="体重の記録に失敗しました")
-                    )
+        mes = set_userData(userId,userWeight)
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text = mes)
+        )
 
     if ':' in recievedMessageText:
         alcKey,liquorAmount = recievedMessageText.split(':')
