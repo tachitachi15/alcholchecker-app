@@ -55,11 +55,20 @@ def handle_message(event):
     userId = event.source.userId
     #ユーザーの重さ情報登録
     if 'kg' in recievedMessageText: #ここはクイックリプライの応答を受け取るようにしたい
-        userWeight = int(recievedMessageText.split('kg'))
+        userWeight = int(recievedMessageText.split('kg')[0])
         with get_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("INSERT INTO weighttable (userId,userWeight) VALUES ({0},{1})".format(userId,userWeight))
-
+                try:
+                    cur.execute("INSERT INTO weighttable (userId,userWeight) VALUES ({0},{1})".format(userId,userWeight))
+                    line_bot_api.reply_message(
+                        event.reply_token,
+                        TextSendMessage(text="体重を記録しました")
+                    )
+                except:
+                    line_bot_api.reply_message(
+                        event.reply_token,
+                        TextSendMessage(text="体重の記録に失敗しました")
+                    )
 
     if ':' in recievedMessageText:
         alcKey,liquorAmount = recievedMessageText.split(':')
@@ -67,13 +76,20 @@ def handle_message(event):
             alcAmount = round(alcTable[alcKey]*int(liquorAmount)*0.8,1)
             with get_connection() as conn:
                 with conn.cursor() as cur:
-                    cur.execute("SELECT userWeight FROM weighttable WHERE userId = '{}'".format(userId))
-                    row = cur.fetchone()
-                    userWeight = row[0]
-            resolutionTime = round(alcAmount / (userWeight*0.1),1) 
-            line_bot_api.reply_message(
-                event.reply_token,
-                TextSendMessage(text="接種アルコール量は"+str(alcAmount)+'gです.分解には約'+str(resolutionTime)+'時間かかります'))
+                    try:
+                        cur.execute("SELECT userWeight FROM weighttable WHERE userId = '{}'".format(userId))
+                        row = cur.fetchone()
+                        userWeight = row[0]
+                        resolutionTime = round(alcAmount / (userWeight*0.1),1) 
+                        line_bot_api.reply_message(
+                            event.reply_token,
+                            TextSendMessage(text="接種アルコール量は"+str(alcAmount)+'gです.分解には約'+str(resolutionTime)+'時間かかります')
+                        )
+                    except:
+                        line_bot_api.reply_message(
+                            event.reply_token,
+                            TextSendMessage(text="計算に失敗しました")
+                        )
         else:
             line_bot_api.reply_message(
                 event.reply_token,
